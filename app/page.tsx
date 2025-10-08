@@ -4,6 +4,13 @@ import type React from "react"
 
 import { useState, useMemo, useEffect } from "react"
 import Papa from "papaparse"
+import dynamic from "next/dynamic"
+
+// Dynamically import Africa map to avoid SSR issues
+const AfricaEventMap = dynamic(() => import("@/components/africa-event-map"), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full text-[#a5a5a5] text-sm">Loading map...</div>,
+})
 
 interface EventData {
   SOURCEURL: string
@@ -239,6 +246,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("")
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+  const [isMapMode, setIsMapMode] = useState(false)
 
   const [columnWidths, setColumnWidths] = useState({
     date: 85,
@@ -438,28 +446,45 @@ export default function Dashboard() {
   }, [filteredData])
 
   const locationByTypeData = useMemo(() => {
-    const locationMap: Record<string, Record<string, number>> = {}
+    const locationMap: Record<string, Record<string, number> & { goldsteinScores: number[] }> = {}
 
     filteredData.forEach((d) => {
       if (d.event_locations) {
         const countries = d.event_locations.split("|").map((c) => c.trim())
+        const goldsteinScore = parseFloat(d.avg_goldstein_score)
+
         countries.forEach((country) => {
           if (!locationMap[country]) {
-            locationMap[country] = { ECON: 0, SEC: 0, DIP: 0, INFO: 0, total: 0 }
+            locationMap[country] = { ECON: 0, SEC: 0, DIP: 0, INFO: 0, total: 0, goldsteinScores: [] }
           }
           if (locationMap[country].hasOwnProperty(d.Type)) {
             locationMap[country][d.Type]++
             locationMap[country].total++
+          }
+          if (!isNaN(goldsteinScore)) {
+            locationMap[country].goldsteinScores.push(goldsteinScore)
           }
         })
       }
     })
 
     return Object.entries(locationMap)
-      .map(([location, counts]) => ({
-        location,
-        ...counts,
-      }))
+      .map(([location, counts]) => {
+        const avgGoldstein =
+          counts.goldsteinScores.length > 0
+            ? counts.goldsteinScores.reduce((a, b) => a + b, 0) / counts.goldsteinScores.length
+            : 0
+
+        return {
+          location,
+          ECON: counts.ECON,
+          SEC: counts.SEC,
+          DIP: counts.DIP,
+          INFO: counts.INFO,
+          total: counts.total,
+          avgGoldstein,
+        }
+      })
       .sort((a, b) => b.total - a.total)
   }, [filteredData])
 
@@ -871,12 +896,31 @@ export default function Dashboard() {
           </div>
 
           <div>
-            <h3 className="text-[10px] font-medium mb-2 text-[#a5a5a5] uppercase tracking-wide">
-              Events by Location and Type (Click to Filter)
-            </h3>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-[10px] font-medium text-[#a5a5a5] uppercase tracking-wide">
+                Events by Location and Type (Click to Filter)
+              </h3>
+              <button
+                onClick={() => setIsMapMode(!isMapMode)}
+                className="bg-transparent border border-[#4a4a4a] text-[#a5a5a5] px-2 py-1 rounded text-[10px] hover:border-[#4a9eff] hover:text-[#4a9eff] transition-all"
+              >
+                {isMapMode ? "Table" : "Map"}
+              </button>
+            </div>
             <div className="border border-[#383838] rounded overflow-hidden">
-              <div className="max-h-[400px] overflow-y-auto">
-                <table className="w-full text-xs">
+              {isMapMode ? (
+                <div className="h-[400px]">
+                  <AfricaEventMap
+                    countryData={Object.fromEntries(
+                      locationByTypeData.map((row) => [row.location, { count: row.total, avgGoldstein: row.avgGoldstein }])
+                    )}
+                    selectedCountry={selectedCountry}
+                    onCountryClick={handleCountryClick}
+                  />
+                </div>
+              ) : (
+                <div className="max-h-[400px] overflow-y-auto">
+                  <table className="w-full text-xs">
                   <thead className="bg-[#333638] sticky top-0">
                     <tr>
                       <th className="text-left p-1.5 text-[#a5a5a5] font-medium">Location</th>
@@ -916,6 +960,7 @@ export default function Dashboard() {
                   </tbody>
                 </table>
               </div>
+              )}
             </div>
           </div>
         </div>
