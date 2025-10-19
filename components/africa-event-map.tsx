@@ -109,7 +109,7 @@ export default function AfricaEventMap({
 
   if (!isClient) {
     return (
-      <div className="flex items-center justify-center h-full bg-[#0d1117] text-[#a5a5a5]">
+      <div className="flex items-center justify-center h-full bg-[#fafafa] text-[#666]">
         Loading map...
       </div>
     )
@@ -118,20 +118,20 @@ export default function AfricaEventMap({
   return (
     <div className="relative w-full h-full">
       <MapContainer
-        center={[0, 20]}
-        zoom={4}
+        center={[2, 20]}
+        zoom={3.2}
         minZoom={3}
         maxZoom={8}
-        style={{ height: "100%", width: "100%", background: "#0d1117" }}
+        style={{ height: "100%", width: "100%", background: "#fafafa" }}
         zoomControl={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           subdomains="abcd"
         />
 
-        <MapController center={[0, 20]} />
+        <MapController center={[2, 20]} />
 
         {/* Render circle markers for each country with data */}
         {Object.entries(countryData).map(([code, data]) => {

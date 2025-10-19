@@ -1,0 +1,488 @@
+{
+  "$schema": "./config.schema.json",
+  "metadata": {
+    "name": "Russia in Africa Tracker",
+    "version": "1.0.0",
+    "description": "Event tracking dashboard configuration"
+  },
+  "theme": {
+    "colors": {
+      "background": "#fafafa",
+      "foreground": "#1a1a1a",
+      "muted": "#666",
+      "border": "#e0e0e0",
+      "borderDark": "#999",
+      "hover": "#ffffff",
+      "highlight": "#ffffff"
+    },
+    "typography": {
+      "title": {
+        "fontFamily": "serif",
+        "fontSize": "text-2xl",
+        "fontWeight": "font-bold"
+      },
+      "sectionHeader": {
+        "fontSize": "text-base",
+        "fontWeight": "font-bold"
+      },
+      "tableHeader": {
+        "fontSize": "text-[10px]",
+        "fontWeight": "font-bold",
+        "transform": "uppercase"
+      },
+      "body": {
+        "fontSize": "text-xs",
+        "fontWeight": "font-normal"
+      }
+    },
+    "spacing": {
+      "containerPadding": {
+        "x": "px-8",
+        "y": "py-6"
+      },
+      "widgetGap": "gap-6",
+      "metricGap": "gap-4",
+      "sectionMargin": "mb-6"
+    }
+  },
+  "layout": {
+    "maxWidth": "max-w-[1600px]",
+    "gridSplit": {
+      "left": "55%",
+      "right": "45%"
+    },
+    "widgets": {
+      "eventTimeline": {
+        "enabled": true,
+        "title": "Event Timeline",
+        "position": "left",
+        "features": {
+          "search": true,
+          "export": true,
+          "sorting": true,
+          "resizableColumns": true
+        }
+      },
+      "timelineChart": {
+        "enabled": true,
+        "title": "Timeline",
+        "position": "right-top",
+        "height": 260,
+        "dateRange": {
+          "start": "2025-06-01",
+          "end": "2025-10-05"
+        },
+        "monthLabels": ["Jun", "Jul", "Aug", "Sep", "Oct"]
+      },
+      "locationWidget": {
+        "enabled": true,
+        "title": "By Location",
+        "position": "right-bottom",
+        "features": {
+          "mapToggle": true,
+          "defaultView": "table"
+        }
+      },
+      "typeMetrics": {
+        "enabled": true,
+        "position": "top",
+        "layout": "grid-cols-4"
+      }
+    }
+  },
+  "data": {
+    "source": {
+      "url": "/data.csv",
+      "type": "csv",
+      "caching": {
+        "enabled": true,
+        "duration": 3600000
+      }
+    },
+    "columnMapping": {
+      "id": "cluster",
+      "date": "Date",
+      "firstEventDate": "first_event_date",
+      "type": "Type",
+      "title": "title",
+      "description": "description",
+      "eventName": "Event name",
+      "sourceUrl": "SOURCEURL",
+      "eventLocations": "event_locations",
+      "goldsteinScore": "avg_goldstein_score",
+      "eventCount": "event_count",
+      "actor1Countries": "actor1_countries",
+      "actor2Countries": "actor2_countries",
+      "actor1Names": "actor1_names",
+      "actor2Names": "actor2_names",
+      "keywords": "keywords",
+      "entities": "combined_text_entities",
+      "entityTypes": "combined_text_entity_types",
+      "eventDescriptions": "event_descriptions",
+      "siteName": "site_name",
+      "language": "language",
+      "author": "author"
+    },
+    "validation": {
+      "requiredFields": ["date", "type"],
+      "filterEmptyTitles": true,
+      "excludeValues": {
+        "title": ["N/A", ""]
+      }
+    },
+    "types": {
+      "ECON": {
+        "label": "Economic Influence (ECON)",
+        "color": "#f97316",
+        "enabled": true
+      },
+      "SEC": {
+        "label": "Military & Security Cooperation (SEC)",
+        "color": "#ef4444",
+        "enabled": true
+      },
+      "DIP": {
+        "label": "Diplomatic Engagements (DIP)",
+        "color": "#d4a017",
+        "enabled": true
+      },
+      "INFO": {
+        "label": "Information Operations (INFO)",
+        "color": "#4a9eff",
+        "enabled": true
+      }
+    },
+    "processing": {
+      "locationDelimiter": "|",
+      "dateFormat": "ISO8601",
+      "trimWhitespace": true
+    }
+  },
+  "features": {
+    "crossFiltering": {
+      "enabled": true,
+      "filters": ["type", "country", "week"]
+    },
+    "search": {
+      "enabled": true,
+      "searchFields": ["title", "description", "eventName"],
+      "caseSensitive": false
+    },
+    "export": {
+      "enabled": true,
+      "format": "csv",
+      "filenamePrefix": "russia-africa-events"
+    },
+    "map": {
+      "enabled": true,
+      "defaultZoom": 3.5,
+      "center": [2, 20],
+      "minZoom": 3,
+      "maxZoom": 8,
+      "tileLayer": "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+      "attribution": "&copy; <a href=\"https://carto.com/attributions\">CARTO</a>"
+    },
+    "visualization": {
+      "timeline": {
+        "pointSize": 5,
+        "pointOpacity": 0.7,
+        "jitterAmount": 18,
+        "gridOpacity": 0.5
+      }
+    }
+  },
+  "ui": {
+    "title": "What's Russia doing in Africa?",
+    "subtitle": "An overview of events and activities",
+    "loading": {
+      "message": "Loading dashboard...",
+      "mapMessage": "Loading map..."
+    },
+    "emptyStates": {
+      "noData": "No data available",
+      "noResults": "No events match your filters"
+    },
+    "labels": {
+      "filters": "Filters:",
+      "clearAll": "Clear all",
+      "events": "events",
+      "export": "Export",
+      "search": "Search...",
+      "table": "Table",
+      "map": "Map"
+    }
+  },
+  "tableColumns": {
+    "eventTimeline": [
+      {
+        "key": "date",
+        "label": "Date",
+        "width": 85,
+        "sortable": true,
+        "resizable": true,
+        "format": "date"
+      },
+      {
+        "key": "type",
+        "label": "Type",
+        "width": 70,
+        "sortable": true,
+        "resizable": true,
+        "colorCoded": true
+      },
+      {
+        "key": "title",
+        "label": "Title",
+        "width": 180,
+        "sortable": true,
+        "resizable": true,
+        "fontWeight": "font-semibold",
+        "fontSize": "text-[13.5px]"
+      },
+      {
+        "key": "description",
+        "label": "Description",
+        "width": 300,
+        "sortable": true,
+        "resizable": true
+      },
+      {
+        "key": "source",
+        "label": "Source",
+        "width": 140,
+        "sortable": true,
+        "resizable": true,
+        "format": "link"
+      }
+    ],
+    "locationTable": [
+      {
+        "key": "location",
+        "label": "Location",
+        "align": "left"
+      },
+      {
+        "key": "ECON",
+        "label": "Econ",
+        "align": "center"
+      },
+      {
+        "key": "SEC",
+        "label": "Sec",
+        "align": "center"
+      },
+      {
+        "key": "DIP",
+        "label": "Dip",
+        "align": "center"
+      },
+      {
+        "key": "INFO",
+        "label": "Info",
+        "align": "center"
+      },
+      {
+        "key": "total",
+        "label": "Total",
+        "align": "center",
+        "fontWeight": "font-bold"
+      }
+    ]
+  },
+  "countryMapping": {
+    "useExternal": false,
+    "externalFile": "./data/country-codes.json",
+    "inline": {
+      "AF": "Afghanistan",
+      "AL": "Albania",
+      "AG": "Algeria",
+      "AO": "Angola",
+      "AR": "Argentina",
+      "AM": "Armenia",
+      "AS": "Australia",
+      "AT": "Austria",
+      "AJ": "Azerbaijan",
+      "BF": "Bahamas, The",
+      "BA": "Bahrain",
+      "BG": "Bangladesh",
+      "BB": "Barbados",
+      "BO": "Belarus",
+      "BE": "Belgium",
+      "BH": "Belize",
+      "BN": "Benin",
+      "BT": "Bhutan",
+      "BL": "Bolivia",
+      "BK": "Bosnia-Herzegovina",
+      "BC": "Botswana",
+      "BR": "Brazil",
+      "BX": "Brunei",
+      "BU": "Bulgaria",
+      "UV": "Burkina Faso",
+      "BY": "Burundi",
+      "CB": "Cambodia",
+      "CM": "Cameroon",
+      "CA": "Canada",
+      "CV": "Cape Verde",
+      "CT": "Central African Republic",
+      "CD": "Chad",
+      "CI": "Chile",
+      "CH": "China",
+      "CO": "Colombia",
+      "CN": "Comoros",
+      "CF": "Congo",
+      "CG": "Democratic Republic of the Congo",
+      "CR": "Costa Rica",
+      "IV": "Cote dIvoire",
+      "HR": "Croatia",
+      "CU": "Cuba",
+      "CY": "Cyprus",
+      "EZ": "Czech Republic",
+      "DA": "Denmark",
+      "DJ": "Djibouti",
+      "DO": "Dominica",
+      "DR": "Dominican Republic",
+      "TT": "East Timor",
+      "EC": "Ecuador",
+      "EG": "Egypt",
+      "ES": "El Salvador",
+      "GV": "Equatorial Guinea",
+      "EK": "Equatorial Guinea",
+      "ER": "Eritrea",
+      "EN": "Estonia",
+      "ET": "Ethiopia",
+      "FJ": "Fiji",
+      "FI": "Finland",
+      "FR": "France",
+      "GB": "Gabon",
+      "GA": "Gambia",
+      "GG": "Georgia",
+      "GM": "Germany",
+      "GH": "Ghana",
+      "GR": "Greece",
+      "GJ": "Grenada",
+      "GT": "Guatemala",
+      "GN": "Guinea",
+      "GW": "Guinea-Bissau",
+      "GY": "Guyana",
+      "HA": "Haiti",
+      "HO": "Honduras",
+      "HU": "Hungary",
+      "IC": "Iceland",
+      "IN": "India",
+      "ID": "Indonesia",
+      "IR": "Iran",
+      "IZ": "Iraq",
+      "EI": "Ireland",
+      "IS": "Israel",
+      "IT": "Italy",
+      "JM": "Jamaica",
+      "JA": "Japan",
+      "JO": "Jordan",
+      "KZ": "Kazakhstan",
+      "KE": "Kenya",
+      "KR": "Korea, South",
+      "KN": "Korea, North",
+      "KU": "Kuwait",
+      "KG": "Kyrgyzstan",
+      "LA": "Laos",
+      "LG": "Latvia",
+      "LE": "Lebanon",
+      "LT": "Lesotho",
+      "LI": "Liberia",
+      "LY": "Libya",
+      "LH": "Lithuania",
+      "LU": "Luxembourg",
+      "MA": "Madagascar",
+      "MI": "Malawi",
+      "MY": "Malaysia",
+      "MV": "Maldives",
+      "ML": "Mali",
+      "MT": "Malta",
+      "RM": "Marshall Islands",
+      "MR": "Mauritania",
+      "MP": "Mauritius",
+      "MX": "Mexico",
+      "FM": "Micronesia",
+      "MD": "Moldova",
+      "MN": "Monaco",
+      "MG": "Mongolia",
+      "MJ": "Montenegro",
+      "MO": "Morocco",
+      "MZ": "Mozambique",
+      "WA": "Namibia",
+      "NR": "Nauru",
+      "NP": "Nepal",
+      "NL": "Netherlands",
+      "NZ": "New Zealand",
+      "NU": "Nicaragua",
+      "NG": "Niger",
+      "NI": "Nigeria",
+      "NO": "Norway",
+      "MU": "Oman",
+      "PK": "Pakistan",
+      "PS": "Palau",
+      "PM": "Panama",
+      "PP": "Papua New Guinea",
+      "PA": "Paraguay",
+      "PE": "Peru",
+      "RP": "Philippines",
+      "PL": "Poland",
+      "PO": "Portugal",
+      "QA": "Qatar",
+      "RO": "Romania",
+      "RS": "Russia",
+      "RW": "Rwanda",
+      "SC": "Saint Kitts and Nevis",
+      "ST": "Saint Lucia",
+      "VC": "Saint Vincent and the Grenadines",
+      "WS": "Samoa",
+      "SM": "San Marino",
+      "TP": "Sao Tome and Principe",
+      "SA": "Saudi Arabia",
+      "SG": "Senegal",
+      "RI": "Serbia",
+      "SE": "Seychelles",
+      "SL": "Sierra Leone",
+      "SN": "Singapore",
+      "LO": "Slovakia",
+      "SI": "Slovenia",
+      "BP": "Solomon Islands",
+      "SO": "Somalia",
+      "SF": "South Africa",
+      "OD": "South Sudan",
+      "SP": "Spain",
+      "CE": "Sri Lanka",
+      "SU": "Sudan",
+      "NS": "Suriname",
+      "WZ": "Swaziland",
+      "SW": "Sweden",
+      "SZ": "Switzerland",
+      "SY": "Syria",
+      "TW": "Taiwan",
+      "TI": "Tajikistan",
+      "TZ": "Tanzania",
+      "TH": "Thailand",
+      "TO": "Togo",
+      "TN": "Tonga",
+      "TD": "Trinidad and Tobago",
+      "TS": "Tunisia",
+      "TU": "Turkey",
+      "TX": "Turkmenistan",
+      "TV": "Tuvalu",
+      "UG": "Uganda",
+      "UP": "Ukraine",
+      "AE": "United Arab Emirates",
+      "UK": "United Kingdom",
+      "US": "United States",
+      "UY": "Uruguay",
+      "UZ": "Uzbekistan",
+      "NH": "Vanuatu",
+      "VT": "Vatican City",
+      "VE": "Venezuela",
+      "VM": "Vietnam, Democratic Republic of",
+      "YM": "Yemen",
+      "ZA": "Zambia",
+      "ZI": "Zimbabwe"
+    }
+  }
+}
