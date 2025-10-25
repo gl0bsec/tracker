@@ -7,6 +7,8 @@ import Papa from "papaparse"
 import dynamic from "next/dynamic"
 import { getCachedData, setCachedData } from "@/lib/data-cache"
 import { loadConfig, getCountryName, getTypeConfig } from "@/lib/config-loader"
+import { insights } from "@/lib/insights-client"
+import { InsightCard } from "@/components/insight-card"
 
 // Dynamically import Africa map to avoid SSR issues
 const AfricaEventMap = dynamic(() => import("@/components/africa-event-map"), {
@@ -282,6 +284,9 @@ export default function Dashboard() {
 
   // View mode state
   const [viewMode, setViewMode] = useState<"overview" | "insights">("overview")
+
+  // Selected insight for modal
+  const [selectedInsight, setSelectedInsight] = useState<typeof insights[0] | null>(null)
 
   // Handle column resize start
   const handleResizeStart = (e: React.MouseEvent, column: string) => {
@@ -1233,11 +1238,66 @@ export default function Dashboard() {
 
       {/* Insights View */}
       {viewMode === "insights" && (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Insights</h2>
-            <p className="text-sm text-[#666]">Coming soon...</p>
-          </div>
+        <div className="flex-1 overflow-y-auto p-6 bg-[#fafafa]">
+          {config?.features?.insights?.comingSoon ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Insights</h2>
+                <p className="text-sm text-[#666]">Coming soon...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-[1400px] mx-auto">
+              {/* Grid Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {insights.map((insight) => (
+                  <InsightCard
+                    key={insight.slug}
+                    title={insight.title}
+                    subtitle={insight.subtitle}
+                    content={insight.content}
+                    onClick={() => setSelectedInsight(insight)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Modal for expanded card */}
+          {selectedInsight && (
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 p-8 animate-fadeIn"
+              style={{ backgroundColor: 'rgba(0, 0, 0, 0.55)' }}
+              onClick={() => setSelectedInsight(null)}
+            >
+              <div
+                className="bg-white border border-[#e0e0e0] rounded p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto relative animate-zoomIn"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Close button */}
+                <button
+                  onClick={() => setSelectedInsight(null)}
+                  className="absolute top-6 right-6 w-6 h-6 flex items-center justify-center text-[#999] hover:text-[#1a1a1a] transition-colors"
+                  aria-label="Close"
+                >
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </button>
+
+                {/* Card content */}
+                <h3 className="text-2xl font-bold text-[#1a1a1a] mb-2 tracking-tight font-serif pr-8">
+                  {selectedInsight.title}
+                </h3>
+                <p className="text-sm text-[#1a1a1a] mb-4 font-light">
+                  {selectedInsight.subtitle}
+                </p>
+                <p className="text-sm text-[#666] leading-relaxed whitespace-pre-wrap font-light">
+                  {selectedInsight.content}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

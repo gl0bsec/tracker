@@ -159,6 +159,10 @@
     }
   },
   "features": {
+    "insights": {
+      "enabled": true,
+      "comingSoon": false
+    },
     "crossFiltering": {
       "enabled": true,
       "filters": ["type", "country", "week"]
