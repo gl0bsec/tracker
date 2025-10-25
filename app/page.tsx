@@ -16,6 +16,12 @@ const AfricaEventMap = dynamic(() => import("@/components/africa-event-map"), {
   loading: () => <div className="flex items-center justify-center h-full text-[#a5a5a5] text-sm">Loading map...</div>,
 })
 
+// Dynamically import D3 timeline to avoid SSR issues
+const D3Timeline = dynamic(() => import("@/components/d3-timeline"), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full text-[#a5a5a5] text-sm">Loading timeline...</div>,
+})
+
 interface EventData {
   SOURCEURL: string
   Date: string
@@ -262,6 +268,7 @@ export default function Dashboard() {
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const [isMapMode, setIsMapMode] = useState(true)
+  const [timelineLayout, setTimelineLayout] = useState<"table" | "feed">("feed")
 
   const [columnWidths, setColumnWidths] = useState({
     date: 85,
@@ -728,10 +735,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen bg-[#fafafa] text-[#1a1a1a] px-8 py-6 flex flex-col max-w-[1600px] mx-auto overflow-hidden">
+    <div className="h-screen bg-[#fafafa] text-[#1a1a1a] px-8 py-6 flex flex-col w-full mx-auto overflow-hidden">
       {/* Header */}
-      <div className="mb-4 pb-3 border-b-2 border-[#1a1a1a] flex-shrink-0">
-        <div className="flex justify-between items-start">
+      <div className="mb-4 pb-3 border-b border-[#e0e0e0] flex-shrink-0 min-w-0">
+        <div className="flex justify-between items-start flex-wrap gap-2">
           <div>
             <h1 className="text-[26px] font-bold mb-0.5 tracking-tight text-[#1a1a1a] font-serif">
               What's Russia doing in Africa?
@@ -799,7 +806,7 @@ export default function Dashboard() {
       {viewMode === "overview" && (
         <>
           {/* Type Metrics */}
-          <div className="grid grid-cols-4 gap-4 mb-6 flex-shrink-0">
+          <div className="grid grid-cols-4 gap-4 mb-6 flex-shrink-0 min-w-0">
         {Object.entries(typeCounts).map(([type, count]) => {
           const typeConfig = getTypeConfig(type, config)
           if (!typeConfig) return null
@@ -809,15 +816,15 @@ export default function Dashboard() {
             <div
               key={type}
               onClick={() => handleTypeClick(type)}
-              className={`border-l-2 pl-3 py-1 cursor-pointer transition-all ${
-                isSelected ? "border-[#1a1a1a]" : "border-[#999] hover:border-[#666]"
+              className={`border-l pl-3 py-1 cursor-pointer transition-all min-w-0 overflow-hidden ${
+                isSelected ? "border-[#1a1a1a]" : "border-[#d0d0d0] hover:border-[#999]"
               }`}
               style={{
                 borderLeftColor: isSelected ? typeConfig.color : undefined,
               }}
             >
               <div
-                className="text-[10px] mb-0.5 uppercase tracking-wide font-semibold"
+                className="text-[10px] mb-0.5 uppercase tracking-wide font-semibold truncate"
                 style={{ color: typeConfig.color }}
               >
                 {typeConfig.label}
@@ -835,31 +842,130 @@ export default function Dashboard() {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-[55%_45%] gap-6 flex-1 min-h-0">
+      <div className="grid grid-cols-[48%_52%] gap-2 flex-1 min-h-0">
         {/* Left Column */}
-        <div className="flex flex-col min-h-0">
-          <div className="flex justify-between items-center mb-2 pb-2 border-b border-[#e0e0e0]">
-            <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">Event Timeline</h2>
-            <div className="flex gap-2 items-center">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white border border-[#e0e0e0] text-[#1a1a1a] px-2.5 py-1 text-xs placeholder-[#999] focus:outline-none focus:border-[#1a1a1a] w-36"
-              />
-              <button
-                onClick={exportToCSV}
-                className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2.5 py-1 text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
-                title="Export filtered data to CSV"
-              >
-                Export
-              </button>
+        <div className="flex flex-col min-h-0 overflow-hidden">
+          <div className="mb-2 pb-2 border-b border-[#e0e0e0]">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">
+                {timelineLayout === "feed" ? "Latest Stories" : "Event Timeline"}
+              </h2>
+              <div className="flex gap-2 items-center">
+                <button
+                  onClick={() => setTimelineLayout(timelineLayout === "table" ? "feed" : "table")}
+                  className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2.5 py-1 text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
+                >
+                  {timelineLayout === "table" ? "Feed" : "Table"}
+                </button>
+                <button
+                  onClick={exportToCSV}
+                  className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2.5 py-1 text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
+                  title="Export filtered data to CSV"
+                >
+                  Export
+                </button>
+              </div>
             </div>
+            {timelineLayout === "feed" && (
+              <div className="relative">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search stories..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-white border border-[#e0e0e0] text-[#1a1a1a] pl-10 pr-3 py-[5px] text-sm placeholder-[#999] focus:outline-none focus:border-[#1a1a1a]"
+                />
+              </div>
+            )}
           </div>
           <div className="overflow-hidden flex flex-col flex-1 min-h-0 bg-[#fafafa]">
-            <div className="flex-1 overflow-y-auto overflow-x-auto">
-              <table className="w-full text-[11px]">
+            {timelineLayout === "feed" ? (
+              /* News Feed Layout */
+              <div className="flex-1 overflow-y-auto px-4 py-2">
+                <div className="w-full max-w-full">
+                  <div className="mb-3 text-xs text-[#666]">{filteredAndSearchedData.length} stories</div>
+                  {filteredAndSearchedData.map((event, i) => {
+                    const typeConfig = getTypeConfig(event.Type, config)
+                    const eventDate = event.Date ? new Date(event.Date) : null
+                    const formattedDate = eventDate
+                      ? eventDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                      : "N/A"
+
+                    // Extract country names from event_locations_array
+                    const countries = event.event_locations_array
+                      .map(code => ({ code, name: getCountryName(code, config) }))
+                      .filter(item => item.name !== item.code) // Filter out unmapped codes
+                      .map(item => item.name)
+                      .slice(0, 1) // Show only first country
+
+                    return (
+                      <div
+                        key={i}
+                        id={`event-row-${i}`}
+                        className={`mb-4 pb-4 border-b border-[#e0e0e0] last:border-b-0 transition-colors ${
+                          highlightedRowIndex === i ? "bg-white -mx-2 px-2 py-2" : ""
+                        }`}
+                      >
+                        {/* Category and Date */}
+                        <div className="flex items-center gap-2 mb-1">
+                          <span
+                            className="text-[10px] font-semibold uppercase tracking-wide"
+                            style={{ color: typeConfig?.color || "#1a1a1a" }}
+                          >
+                            {typeConfig?.label?.replace(/\s*\(.*?\)\s*/g, '') || event.Type}
+                          </span>
+                          <span className="text-[#999]">·</span>
+                          <span className="text-[10px] text-[#666]">{formattedDate}</span>
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-[15px] font-semibold mb-2 leading-snug">
+                          <a
+                            href={event.SOURCEURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#1a1a1a] hover:underline"
+                          >
+                            {event.title || "N/A"}
+                          </a>
+                        </h3>
+
+                        {/* Description */}
+                        <p className="text-xs text-[#666] leading-relaxed mb-2 line-clamp-3">
+                          {event.description || "No description available"}
+                        </p>
+
+                        {/* Footer: Country and Source */}
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-[#666] font-semibold">
+                            {countries.length > 0 ? countries[0] : "Unknown"}
+                          </span>
+                          <a
+                            href={event.SOURCEURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#1a1a1a] font-medium hover:underline"
+                          >
+                            {event.site_name || "Link"}
+                          </a>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              /* Original Table Layout */
+              <div className="flex-1 overflow-y-auto overflow-x-auto">
+                <table className="w-full text-[11px]">
                 <thead className="bg-[#fafafa] sticky top-0 border-b-2 border-[#1a1a1a]">
                   <tr>
                     <th
@@ -1004,166 +1110,18 @@ export default function Dashboard() {
                   ))}
                 </tbody>
               </table>
+              <div className="px-3 py-2 text-center text-[#666] text-xs bg-[#fafafa] border-t-2 border-[#e0e0e0]">
+                {filteredAndSearchedData.length} events
+              </div>
             </div>
-            <div className="px-3 py-2 text-center text-[#666] text-xs bg-[#fafafa] border-t-2 border-[#e0e0e0]">
-              {filteredAndSearchedData.length} events
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Right Column - Strip Plot and Location Table */}
-        <div className="flex flex-col gap-6 min-h-0">
-          {/* Strip Plot */}
-          <div className="flex-shrink-0">
-            <div className="flex justify-between items-center mb-2 pb-2 border-b border-[#e0e0e0]">
-              <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">
-                Timeline
-              </h2>
-              {zoomRange && (
-                <button
-                  onClick={resetZoom}
-                  className="text-xs px-2 py-1 bg-[#e0e0e0] hover:bg-[#d0d0d0] text-[#1a1a1a] rounded transition-colors"
-                >
-                  Reset Zoom
-                </button>
-              )}
-            </div>
-            <div className="overflow-hidden bg-[#fafafa]">
-              <svg
-                width="100%"
-                height="300"
-                viewBox="0 0 620 280"
-                preserveAspectRatio="xMidYMid meet"
-                className="overflow-visible cursor-crosshair"
-                onMouseDown={handleTimelineMouseDown}
-                onMouseMove={handleTimelineMouseMove}
-                onMouseUp={handleTimelineMouseUp}
-                onMouseLeave={handleTimelineMouseUp}
-              >
-                <defs>
-                  <pattern id="grid" width="100" height="70" patternUnits="userSpaceOnUse">
-                    <line x1="0" y1="0" x2="0" y2="280" stroke="#e0e0e0" strokeWidth="0.5" opacity="0.5" />
-                  </pattern>
-                </defs>
-
-                {/* Background grid */}
-                <rect x="80" y="0" width="520" height="250" fill="url(#grid)" />
-
-                {/* Horizontal lines for each type */}
-                {["ECON", "SEC", "DIP", "INFO"].map((type, i) => {
-                  const y = i * 62.5 + 31.25
-                  return (
-                    <g key={type}>
-                      <line x1="60" x2="600" y1={y} y2={y} stroke="#e0e0e0" strokeWidth="0.5" opacity="0.5" />
-                      <text x="10" y={y + 4} fill="#1a1a1a" fontSize="11" fontWeight="700" dominantBaseline="middle">
-                        {type}
-                      </text>
-                    </g>
-                  )
-                })}
-
-                {/* Vertical grid lines for months */}
-                {monthLabels.map((month, i) => {
-                  const x = 80 + (i / (monthLabels.length - 1)) * 520
-                  return (
-                    <line
-                      key={`vline-${i}`}
-                      x1={x}
-                      y1="0"
-                      x2={x}
-                      y2="250"
-                      stroke="#e0e0e0"
-                      strokeWidth="0.5"
-                      opacity="0.5"
-                    />
-                  )
-                })}
-
-                {/* X-axis labels */}
-                {monthLabels.map((month, i) => {
-                  const x = 80 + (i / (monthLabels.length - 1)) * 520
-                  return (
-                    <text key={month + i} x={x} y="265" fill="#666" fontSize="11" textAnchor="middle">
-                      {month}
-                    </text>
-                  )
-                })}
-
-                {/* Data points as squares */}
-                {stripPlotData.map((d, i) => {
-                  const typeIndex = ["ECON", "SEC", "DIP", "INFO"].indexOf(d.type)
-                  if (typeIndex === -1) return null
-
-                  if (d.date < startDate || d.date > endDate) return null
-
-                  // Calculate y position with slight jitter
-                  // Use a stable hash-based jitter so points don't move on re-render
-                  const baseY = typeIndex * 62.5 + 31.25
-                  const seed = d.title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + d.date.getTime()
-                  const jitter = ((seed % 1000) / 1000 - 0.5) * 18
-                  const y = baseY + jitter
-
-                  // Calculate x position
-                  const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-                  const daysSinceStart = (d.date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-                  const x = 80 + (daysSinceStart / totalDays) * 520
-
-                  const typeColors: Record<string, string> = {
-                    ECON: "#f97316",
-                    SEC: "#ef4444",
-                    DIP: "#d4a017",
-                    INFO: "#4a9eff",
-                  }
-
-                  const circleRadius = 3
-
-                  return (
-                    <circle
-                      key={i}
-                      cx={x}
-                      cy={y}
-                      r={circleRadius}
-                      fill={typeColors[d.type]}
-                      opacity="0.7"
-                      className="cursor-pointer hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        if (!isDragging) {
-                          e.stopPropagation()
-                          handleTimelinePointClick(d.eventData)
-                        }
-                      }}
-                      onMouseDown={(e) => e.stopPropagation()}
-                    >
-                      <title>
-                        {d.title}
-                        {"\n"}
-                        {d.date.toLocaleDateString()}
-                        {"\n\n"}
-                        {d.description}
-                      </title>
-                    </circle>
-                  )
-                })}
-
-                {/* Drag selection rectangle */}
-                {isDragging && dragStart !== null && dragEnd !== null && (
-                  <rect
-                    x={Math.min(dragStart, dragEnd)}
-                    y="0"
-                    width={Math.abs(dragEnd - dragStart)}
-                    height="250"
-                    fill="#4a9eff"
-                    opacity="0.2"
-                    stroke="#4a9eff"
-                    strokeWidth="1"
-                    pointerEvents="none"
-                  />
-                )}
-              </svg>
-            </div>
-          </div>
-
-          <div className="flex flex-col flex-1 min-h-0">
+        {/* Right Column - Location Table and Strip Plot */}
+        <div className="flex flex-col gap-2 min-h-0 overflow-hidden">
+          {/* By Location - now first - takes 60% of vertical space */}
+          <div className="flex flex-col min-h-0" style={{ flex: "0 1 60%" }}>
             <div className="flex justify-between items-center mb-2 pb-2 border-b border-[#e0e0e0]">
               <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">
                 By Location
@@ -1229,6 +1187,33 @@ export default function Dashboard() {
                 </table>
               </div>
               )}
+            </div>
+          </div>
+
+          {/* Timeline - now second - takes 40% of vertical space */}
+          <div className="flex flex-col min-h-0" style={{ flex: "0 1 40%" }}>
+            <div className="flex justify-between items-center mb-2 pb-2 border-b border-[#e0e0e0]">
+              <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">
+                Timeline
+              </h2>
+              {zoomRange && (
+                <button
+                  onClick={resetZoom}
+                  className="text-xs px-2 py-1 bg-[#e0e0e0] hover:bg-[#d0d0d0] text-[#1a1a1a] rounded transition-colors"
+                >
+                  Reset Zoom
+                </button>
+              )}
+            </div>
+            <div className="bg-[#fafafa] h-full min-h-[200px] max-h-[280px]">
+              <D3Timeline
+                data={stripPlotData}
+                startDate={defaultStartDate}
+                endDate={defaultEndDate}
+                onPointClick={handleTimelinePointClick}
+                onZoom={(start, end) => setZoomRange({ start, end })}
+                zoomRange={zoomRange}
+              />
             </div>
           </div>
         </div>
