@@ -149,7 +149,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen bg-[#fafafa] text-[#1a1a1a] px-8 py-6 flex flex-col w-full mx-auto overflow-hidden">
+    <div className="h-screen bg-[#fafafa] text-[#1a1a1a] px-4 py-4 md:px-6 md:py-5 lg:px-8 lg:py-6 flex flex-col w-full mx-auto overflow-hidden">
       <DashboardHeader
         selectedType={selectedType}
         selectedCountry={selectedCountry}
@@ -165,9 +165,9 @@ export default function Dashboard() {
           <TypeMetrics data={filteredData} selectedType={selectedType} onTypeClick={handleTypeClick} />
 
           {/* Grid */}
-          <div className="grid grid-cols-[48%_52%] gap-2 flex-1 min-h-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[48%_52%] gap-4 lg:gap-2 flex-1 min-h-0">
             {/* Left Column */}
-            <div className="flex flex-col min-h-0 overflow-hidden">
+            <div className="flex flex-col min-h-0 overflow-hidden h-[500px] lg:h-auto">
               <div className="mb-2 pb-2 border-b border-[#e0e0e0]">
                 <div className="flex justify-between items-center mb-2">
                   <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">
@@ -240,7 +240,7 @@ export default function Dashboard() {
               />
 
               {/* Timeline */}
-              <div className="flex flex-col min-h-0" style={{ flex: "0 1 40%" }}>
+              <div className="flex flex-col min-h-[300px] lg:min-h-0 lg:flex-[0_1_40%]">
                 <div className="flex justify-between items-center mb-2 pb-2 border-b border-[#e0e0e0]">
                   <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">Timeline</h2>
                   {zoomRange && (
@@ -252,7 +252,7 @@ export default function Dashboard() {
                     </button>
                   )}
                 </div>
-                <div className="bg-[#fafafa] h-full min-h-[200px] max-h-[280px]">
+                <div className="bg-[#fafafa] h-full min-h-[200px] max-h-[250px] md:max-h-[280px]">
                   <D3Timeline
                     data={stripPlotData}
                     startDate={defaultStartDate}

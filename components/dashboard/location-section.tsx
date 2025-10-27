@@ -58,7 +58,7 @@ export function LocationSection({ data, isMapMode, onToggleMode, selectedCountry
   }, [data])
 
   return (
-    <div className="flex flex-col min-h-0" style={{ flex: "0 1 60%" }}>
+    <div className="flex flex-col min-h-[400px] lg:min-h-0 lg:flex-[0_1_60%]">
       <div className="flex justify-between items-center mb-2 pb-2 border-b border-[#e0e0e0]">
         <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">By Location</h2>
         <button

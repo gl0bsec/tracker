@@ -24,7 +24,7 @@ export function TypeMetrics({ data, selectedType, onTypeClick }: TypeMetricsProp
   }, [data])
 
   return (
-    <div className="grid grid-cols-4 gap-4 mb-6 flex-shrink-0 min-w-0">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 flex-shrink-0 min-w-0">
       {Object.entries(typeCounts).map(([type, count]) => {
         const typeConfig = getTypeConfig(type, config)
         if (!typeConfig) return null

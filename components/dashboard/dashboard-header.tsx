@@ -27,7 +27,7 @@ export function DashboardHeader({
     <div className="mb-4 pb-3 border-b border-[#e0e0e0] flex-shrink-0 min-w-0">
       <div className="flex justify-between items-start flex-wrap gap-2">
         <div>
-          <h1 className="text-[26px] font-bold mb-0.5 tracking-tight text-[#1a1a1a] font-serif">
+          <h1 className="text-xl md:text-[26px] font-bold mb-0.5 tracking-tight text-[#1a1a1a] font-serif">
             What's Russia doing in Africa?
           </h1>
           <p className="text-xs text-[#666] font-light">An overview of events and activities</p>
