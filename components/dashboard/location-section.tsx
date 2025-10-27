@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import dynamic from "next/dynamic"
 import type { ProcessedEventData } from "@/lib/types/events"
 import { countryCodeMap } from "@/lib/data/country-codes"
+import { InfoButton } from "@/components/info-button"
 
 const AfricaEventMap = dynamic(() => import("@/components/africa-event-map"), {
   ssr: false,
@@ -16,9 +17,17 @@ interface LocationSectionProps {
   onToggleMode: () => void
   selectedCountry: string | null
   onCountryClick: (code: string) => void
+  onShowInfo?: () => void
 }
 
-export function LocationSection({ data, isMapMode, onToggleMode, selectedCountry, onCountryClick }: LocationSectionProps) {
+export function LocationSection({
+  data,
+  isMapMode,
+  onToggleMode,
+  selectedCountry,
+  onCountryClick,
+  onShowInfo,
+}: LocationSectionProps) {
   const locationByTypeData = useMemo(() => {
     const locationMap: Record<string, Record<string, number> & { goldsteinScores: number[] }> = {}
 
@@ -60,7 +69,10 @@ export function LocationSection({ data, isMapMode, onToggleMode, selectedCountry
   return (
     <div className="flex flex-col min-h-[400px] lg:min-h-0 lg:flex-[0_1_60%]">
       <div className="flex justify-between items-center mb-2 pb-2 border-b border-[#e0e0e0]">
-        <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">By Location</h2>
+        <div className="flex items-center">
+          <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">By Location</h2>
+          {onShowInfo && <InfoButton onClick={onShowInfo} />}
+        </div>
         <button
           onClick={onToggleMode}
           className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2.5 py-1 text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all"

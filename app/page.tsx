@@ -15,6 +15,9 @@ import { TypeMetrics } from "@/components/dashboard/type-metrics"
 import { EventsFeed } from "@/components/dashboard/events-feed"
 import { EventsTable } from "@/components/dashboard/events-table"
 import { LocationSection } from "@/components/dashboard/location-section"
+import { InfoButton } from "@/components/info-button"
+import { InfoModal } from "@/components/info-modal"
+import { loadWidgetInfo } from "@/lib/markdown-loader"
 
 const D3Timeline = dynamic(() => import("@/components/d3-timeline"), {
   ssr: false,
@@ -47,6 +50,17 @@ export default function Dashboard() {
   // Selected insight for modal
   const [selectedInsight, setSelectedInsight] = useState<(typeof insights)[0] | null>(null)
 
+  // Mobile view toggle state (timeline vs location)
+  const [mobileView, setMobileView] = useState<"timeline" | "location">("timeline")
+
+  // Info modal state
+  const [infoModal, setInfoModal] = useState<{ title: string; content: string } | null>(null)
+
+  const handleShowInfo = async (widgetId: string, title: string) => {
+    const content = await loadWidgetInfo(widgetId)
+    setInfoModal({ title, content })
+  }
+
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc")
@@ -74,6 +88,45 @@ export default function Dashboard() {
 
   // Apply search and sort
   const filteredAndSearchedData = useEventSearch(filteredData, { searchQuery, sortColumn, sortDirection })
+
+  // Location data for mobile view
+  const locationByTypeData = useMemo(() => {
+    const locationMap: Record<string, Record<string, number> & { goldsteinScores: number[] }> = {}
+
+    filteredData.forEach((d) => {
+      d.event_locations_array.forEach((country) => {
+        if (!locationMap[country]) {
+          locationMap[country] = { ECON: 0, SEC: 0, DIP: 0, INFO: 0, total: 0, goldsteinScores: [] }
+        }
+        if (locationMap[country].hasOwnProperty(d.Type)) {
+          locationMap[country][d.Type]++
+          locationMap[country].total++
+        }
+        if (d.parsed_goldstein !== 0) {
+          locationMap[country].goldsteinScores.push(d.parsed_goldstein)
+        }
+      })
+    })
+
+    return Object.entries(locationMap)
+      .map(([location, counts]) => {
+        const avgGoldstein =
+          counts.goldsteinScores.length > 0
+            ? counts.goldsteinScores.reduce((a, b) => a + b, 0) / counts.goldsteinScores.length
+            : 0
+
+        return {
+          location,
+          ECON: counts.ECON,
+          SEC: counts.SEC,
+          DIP: counts.DIP,
+          INFO: counts.INFO,
+          total: counts.total,
+          avgGoldstein,
+        }
+      })
+      .sort((a, b) => b.total - a.total)
+  }, [filteredData])
 
   const stripPlotData = useMemo(() => {
     return filteredData
@@ -162,17 +215,25 @@ export default function Dashboard() {
       {/* Overview Dashboard */}
       {viewMode === "overview" && (
         <>
-          <TypeMetrics data={filteredData} selectedType={selectedType} onTypeClick={handleTypeClick} />
+          <TypeMetrics
+            data={filteredData}
+            selectedType={selectedType}
+            onTypeClick={handleTypeClick}
+            onShowInfo={() => handleShowInfo("type-metrics", "Event Type Metrics")}
+          />
 
           {/* Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-[48%_52%] gap-4 lg:gap-2 flex-1 min-h-0">
             {/* Left Column */}
-            <div className="flex flex-col min-h-0 overflow-hidden h-[500px] lg:h-auto">
+            <div className="flex flex-col min-h-0 overflow-hidden h-auto lg:h-auto">
               <div className="mb-2 pb-2 border-b border-[#e0e0e0]">
                 <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">
-                    {timelineLayout === "feed" ? "Latest Stories" : "Event Timeline"}
-                  </h2>
+                  <div className="flex items-center">
+                    <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">
+                      {timelineLayout === "feed" ? "Latest Stories" : "Event Timeline"}
+                    </h2>
+                    <InfoButton onClick={() => handleShowInfo("latest-stories", "Latest Stories")} />
+                  </div>
                   <div className="flex gap-2 items-center">
                     <button
                       onClick={() => setTimelineLayout(timelineLayout === "table" ? "feed" : "table")}
@@ -227,22 +288,131 @@ export default function Dashboard() {
                   />
                 )}
               </div>
+
+              {/* Mobile Timeline/Location - shown only on mobile/tablet below feed */}
+              <div className="lg:hidden mt-2 flex flex-col flex-shrink-0">
+                <div className="flex justify-between items-center mb-2 pb-2 border-t border-[#e0e0e0] pt-2">
+                  <div className="flex items-center">
+                    <h2 className="text-sm font-bold text-[#1a1a1a] tracking-tight">
+                      {mobileView === "timeline" ? "Timeline" : "By Location"}
+                    </h2>
+                    <InfoButton
+                      onClick={() =>
+                        handleShowInfo(
+                          mobileView === "timeline" ? "timeline" : "by-location",
+                          mobileView === "timeline" ? "Timeline" : "By Location"
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    {mobileView === "timeline" && zoomRange && (
+                      <button
+                        onClick={resetZoom}
+                        className="text-xs px-2 py-1 bg-[#e0e0e0] hover:bg-[#d0d0d0] text-[#1a1a1a] rounded transition-colors"
+                      >
+                        Reset Zoom
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setMobileView(mobileView === "timeline" ? "location" : "timeline")}
+                      className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2.5 py-1 text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
+                    >
+                      {mobileView === "timeline" ? "By Location" : "Timeline"}
+                    </button>
+                  </div>
+                </div>
+                {mobileView === "timeline" ? (
+                  <div className="bg-[#fafafa] h-[160px]">
+                    <D3Timeline
+                      data={stripPlotData}
+                      startDate={defaultStartDate}
+                      endDate={defaultEndDate}
+                      onPointClick={handleTimelinePointClick}
+                      onZoom={(start, end) => setZoomRange({ start, end })}
+                      zoomRange={zoomRange}
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-[#fafafa] h-[220px] overflow-y-auto">
+                    <table className="w-full text-xs">
+                      <thead className="bg-[#fafafa] sticky top-0 border-b-2 border-[#1a1a1a]">
+                        <tr>
+                          <th className="text-left px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                            Location
+                          </th>
+                          <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                            Econ
+                          </th>
+                          <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                            Sec
+                          </th>
+                          <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                            Dip
+                          </th>
+                          <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                            Info
+                          </th>
+                          <th className="text-center px-2.5 py-2 font-bold text-[#1a1a1a] text-[10px] uppercase tracking-wide">
+                            Total
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {locationByTypeData.map((row, i) => {
+                          const isSelected = selectedCountry === row.location
+                          return (
+                            <tr
+                              key={i}
+                              onClick={() => handleCountryClick(row.location)}
+                              className={`border-b border-[#e0e0e0] cursor-pointer transition-all ${
+                                isSelected ? "bg-white" : "hover:bg-white"
+                              }`}
+                            >
+                              <td
+                                className={`px-2.5 py-2 text-xs ${isSelected ? "text-[#1a1a1a] font-bold" : "text-[#1a1a1a]"}`}
+                              >
+                                {config.countryMapping.inline[row.location] || row.location}
+                              </td>
+                              <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.ECON}</td>
+                              <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.SEC}</td>
+                              <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.DIP}</td>
+                              <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.INFO}</td>
+                              <td
+                                className={`text-center px-2.5 py-2 font-bold text-xs ${
+                                  isSelected ? "text-[#1a1a1a]" : "text-[#1a1a1a]"
+                                }`}
+                              >
+                                {row.total}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right Column - Location Table and Strip Plot */}
-            <div className="flex flex-col gap-2 min-h-0 overflow-hidden">
+            <div className="hidden lg:flex flex-col gap-2 min-h-0 overflow-hidden">
               <LocationSection
                 data={filteredData}
                 isMapMode={isMapMode}
                 onToggleMode={() => setIsMapMode(!isMapMode)}
                 selectedCountry={selectedCountry}
                 onCountryClick={handleCountryClick}
+                onShowInfo={() => handleShowInfo("by-location", "By Location")}
               />
 
               {/* Timeline */}
               <div className="flex flex-col min-h-[300px] lg:min-h-0 lg:flex-[0_1_40%]">
                 <div className="flex justify-between items-center mb-2 pb-2 border-b border-[#e0e0e0]">
-                  <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">Timeline</h2>
+                  <div className="flex items-center">
+                    <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">Timeline</h2>
+                    <InfoButton onClick={() => handleShowInfo("timeline", "Timeline")} />
+                  </div>
                   {zoomRange && (
                     <button
                       onClick={resetZoom}
@@ -327,6 +497,9 @@ export default function Dashboard() {
           )}
         </div>
       )}
+
+      {/* Info Modal */}
+      {infoModal && <InfoModal title={infoModal.title} content={infoModal.content} onClose={() => setInfoModal(null)} />}
     </div>
   )
 }

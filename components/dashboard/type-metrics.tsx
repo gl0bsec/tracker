@@ -3,14 +3,16 @@
 import { useMemo } from "react"
 import type { ProcessedEventData } from "@/lib/types/events"
 import { getTypeConfig, loadConfig } from "@/lib/config-loader"
+import { InfoButton } from "@/components/info-button"
 
 interface TypeMetricsProps {
   data: ProcessedEventData[]
   selectedType: string | null
   onTypeClick: (type: string) => void
+  onShowInfo?: () => void
 }
 
-export function TypeMetrics({ data, selectedType, onTypeClick }: TypeMetricsProps) {
+export function TypeMetrics({ data, selectedType, onTypeClick, onShowInfo }: TypeMetricsProps) {
   const config = loadConfig()
 
   const typeCounts = useMemo(() => {
@@ -24,7 +26,14 @@ export function TypeMetrics({ data, selectedType, onTypeClick }: TypeMetricsProp
   }, [data])
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 flex-shrink-0 min-w-0">
+    <div className="mb-6 flex-shrink-0 min-w-0">
+      {onShowInfo && (
+        <div className="flex items-center mb-2">
+          <h2 className="text-sm font-semibold text-[#666] uppercase tracking-wide">Event Types</h2>
+          <InfoButton onClick={onShowInfo} />
+        </div>
+      )}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
       {Object.entries(typeCounts).map(([type, count]) => {
         const typeConfig = getTypeConfig(type, config)
         if (!typeConfig) return null
@@ -57,6 +66,7 @@ export function TypeMetrics({ data, selectedType, onTypeClick }: TypeMetricsProp
           </div>
         )
       })}
+      </div>
     </div>
   )
 }
