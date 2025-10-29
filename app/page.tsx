@@ -223,27 +223,27 @@ export default function Dashboard() {
           />
 
           {/* Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-[48%_52%] gap-4 lg:gap-2 flex-1 min-h-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[48%_52%] gap-3 lg:gap-2 flex-1 min-h-0">
             {/* Left Column */}
             <div className="flex flex-col min-h-0 overflow-hidden h-auto lg:h-auto">
-              <div className="mb-2 pb-2 border-b border-[#e0e0e0]">
-                <div className="flex justify-between items-center mb-2">
+              <div className="mb-1.5 pb-1.5 md:mb-2 md:pb-2 border-b border-[#e0e0e0]">
+                <div className="flex justify-between items-center mb-1.5 md:mb-2">
                   <div className="flex items-center">
-                    <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">
+                    <h2 className="text-sm md:text-base font-bold text-[#1a1a1a] tracking-tight">
                       {timelineLayout === "feed" ? "Latest Stories" : "Event Timeline"}
                     </h2>
                     <InfoButton onClick={() => handleShowInfo("latest-stories", "Latest Stories")} />
                   </div>
-                  <div className="flex gap-2 items-center">
+                  <div className="flex gap-1.5 md:gap-2 items-center">
                     <button
                       onClick={() => setTimelineLayout(timelineLayout === "table" ? "feed" : "table")}
-                      className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2.5 py-1 text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
+                      className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2 py-0.5 md:px-2.5 md:py-1 text-[10px] md:text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
                     >
                       {timelineLayout === "table" ? "Feed" : "Table"}
                     </button>
                     <button
                       onClick={exportToCSV}
-                      className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2.5 py-1 text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
+                      className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2 py-0.5 md:px-2.5 md:py-1 text-[10px] md:text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
                       title="Export filtered data to CSV"
                     >
                       Export
@@ -253,7 +253,7 @@ export default function Dashboard() {
                 {timelineLayout === "feed" && (
                   <div className="relative">
                     <svg
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999]"
+                      className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 text-[#999]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -270,7 +270,7 @@ export default function Dashboard() {
                       placeholder="Search stories..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-white border border-[#e0e0e0] text-[#1a1a1a] pl-10 pr-3 py-[5px] text-sm placeholder-[#999] focus:outline-none focus:border-[#1a1a1a]"
+                      className="w-full bg-white border border-[#e0e0e0] text-[#1a1a1a] pl-8 md:pl-10 pr-2 md:pr-3 py-1 md:py-[5px] text-[11px] md:text-sm placeholder-[#999] focus:outline-none focus:border-[#1a1a1a]"
                     />
                   </div>
                 )}
@@ -291,9 +291,9 @@ export default function Dashboard() {
 
               {/* Mobile Timeline/Location - shown only on mobile/tablet below feed */}
               <div className="lg:hidden mt-2 flex flex-col flex-shrink-0">
-                <div className="flex justify-between items-center mb-2 pb-2 border-t border-[#e0e0e0] pt-2">
+                <div className="flex justify-between items-center mb-1.5 pb-1.5 border-t border-[#e0e0e0] pt-1.5">
                   <div className="flex items-center">
-                    <h2 className="text-sm font-bold text-[#1a1a1a] tracking-tight">
+                    <h2 className="text-[11px] font-bold text-[#1a1a1a] tracking-tight">
                       {mobileView === "timeline" ? "Timeline" : "By Location"}
                     </h2>
                     <InfoButton
@@ -309,21 +309,21 @@ export default function Dashboard() {
                     {mobileView === "timeline" && zoomRange && (
                       <button
                         onClick={resetZoom}
-                        className="text-xs px-2 py-1 bg-[#e0e0e0] hover:bg-[#d0d0d0] text-[#1a1a1a] rounded transition-colors"
+                        className="text-[10px] px-1.5 py-0.5 bg-[#e0e0e0] hover:bg-[#d0d0d0] text-[#1a1a1a] rounded transition-colors"
                       >
                         Reset Zoom
                       </button>
                     )}
                     <button
                       onClick={() => setMobileView(mobileView === "timeline" ? "location" : "timeline")}
-                      className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2.5 py-1 text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
+                      className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2 py-0.5 text-[10px] font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
                     >
                       {mobileView === "timeline" ? "By Location" : "Timeline"}
                     </button>
                   </div>
                 </div>
                 {mobileView === "timeline" ? (
-                  <div className="bg-[#fafafa] h-[160px]">
+                  <div className="bg-[#fafafa] h-[100px]">
                     <D3Timeline
                       data={stripPlotData}
                       startDate={defaultStartDate}
@@ -334,7 +334,7 @@ export default function Dashboard() {
                     />
                   </div>
                 ) : (
-                  <div className="bg-[#fafafa] h-[220px] overflow-y-auto">
+                  <div className="bg-[#fafafa] h-[140px] overflow-y-auto">
                     <table className="w-full text-xs">
                       <thead className="bg-[#fafafa] sticky top-0 border-b-2 border-[#1a1a1a]">
                         <tr>
