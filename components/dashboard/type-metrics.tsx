@@ -26,14 +26,14 @@ export function TypeMetrics({ data, selectedType, onTypeClick, onShowInfo }: Typ
   }, [data])
 
   return (
-    <div className="mb-6 flex-shrink-0 min-w-0">
+    <div className="mb-4 md:mb-6 flex-shrink-0 min-w-0">
       {onShowInfo && (
         <div className="flex items-center mb-2">
-          <h2 className="text-sm font-semibold text-[#666] uppercase tracking-wide">Event Types</h2>
+          <h2 className="text-[10px] md:text-sm font-semibold text-[#666] uppercase tracking-wide">Event Types</h2>
           <InfoButton onClick={onShowInfo} />
         </div>
       )}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 lg:gap-4">
       {Object.entries(typeCounts).map(([type, count]) => {
         const typeConfig = getTypeConfig(type, config)
         if (!typeConfig) return null
@@ -43,7 +43,7 @@ export function TypeMetrics({ data, selectedType, onTypeClick, onShowInfo }: Typ
           <div
             key={type}
             onClick={() => onTypeClick(type)}
-            className={`border-l pl-3 py-1 cursor-pointer transition-all min-w-0 overflow-hidden ${
+            className={`border-l pl-2 md:pl-3 py-1 cursor-pointer transition-all min-w-0 overflow-hidden ${
               isSelected ? "border-[#1a1a1a]" : "border-[#d0d0d0] hover:border-[#999]"
             }`}
             style={{
@@ -51,13 +51,13 @@ export function TypeMetrics({ data, selectedType, onTypeClick, onShowInfo }: Typ
             }}
           >
             <div
-              className="text-[11.5px] mb-0.5 uppercase tracking-wide font-semibold truncate"
+              className="text-[9px] md:text-[11.5px] mb-0.5 uppercase tracking-wide font-semibold truncate"
               style={{ color: typeConfig.color }}
             >
               {typeConfig.label}
             </div>
             <div
-              className={`text-[30px] font-bold leading-none tracking-tight ${
+              className={`text-[24px] md:text-[30px] font-bold leading-none tracking-tight ${
                 isSelected ? "text-[#1a1a1a]" : "text-[#333]"
               }`}
             >

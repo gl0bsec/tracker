@@ -24,17 +24,17 @@ export function DashboardHeader({
   const hasFilters = selectedType || selectedCountry || selectedWeek
 
   return (
-    <div className="mb-4 pb-3 border-b border-[#e0e0e0] flex-shrink-0 min-w-0">
+    <div className="mb-3 pb-2 md:mb-4 md:pb-3 border-b border-[#e0e0e0] flex-shrink-0 min-w-0">
       <div className="flex justify-between items-start flex-wrap gap-2">
         <div>
-          <h1 className="text-xl md:text-[26px] font-bold mb-0.5 tracking-tight text-[#1a1a1a] font-serif">
+          <h1 className="text-base md:text-xl lg:text-[26px] font-bold mb-0.5 tracking-tight text-[#1a1a1a] font-serif">
             {config.ui.title}
           </h1>
-          <p className="text-xs text-[#666] font-light">{config.ui.subtitle}</p>
+          <p className="text-[10px] md:text-xs text-[#666] font-light">{config.ui.subtitle}</p>
         </div>
 
         {/* View Mode Toggle */}
-        <div className="relative inline-flex bg-[#e0e0e0] rounded-full p-0.5 h-8">
+        <div className="relative inline-flex bg-[#e0e0e0] rounded-full p-0.5 h-7 md:h-8">
           <div
             className="absolute top-0.5 bottom-0.5 w-[calc(50%-0.125rem)] bg-[#1a1a1a] rounded-full transition-transform duration-300 ease-out"
             style={{
@@ -43,7 +43,7 @@ export function DashboardHeader({
           />
           <button
             onClick={() => onViewModeChange("overview")}
-            className={`relative z-10 px-4 text-xs font-semibold transition-colors duration-300 ${
+            className={`relative z-10 px-3 md:px-4 text-[10px] md:text-xs font-semibold transition-colors duration-300 ${
               viewMode === "overview" ? "text-[#fafafa]" : "text-[#1a1a1a]"
             }`}
           >
@@ -51,7 +51,7 @@ export function DashboardHeader({
           </button>
           <button
             onClick={() => onViewModeChange("insights")}
-            className={`relative z-10 px-4 text-xs font-semibold transition-colors duration-300 ${
+            className={`relative z-10 px-3 md:px-4 text-[10px] md:text-xs font-semibold transition-colors duration-300 ${
               viewMode === "insights" ? "text-[#fafafa]" : "text-[#1a1a1a]"
             }`}
           >

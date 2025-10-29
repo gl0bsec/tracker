@@ -125,6 +125,18 @@
   }
 }
 
+/* Mobile scaling - 80% of desktop size */
+@media (max-width: 768px) {
+  :root {
+    font-size: 80%;
+  }
+
+  /* Scale down all visual elements proportionally */
+  body > * {
+    transform-origin: top center;
+  }
+}
+
 /* Leaflet map dark theme adjustments */
 .leaflet-container {
   background: oklch(0.14 0.055 250) !important;

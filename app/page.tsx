@@ -202,7 +202,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen bg-[#fafafa] text-[#1a1a1a] px-4 py-4 md:px-6 md:py-5 lg:px-8 lg:py-6 flex flex-col w-full mx-auto overflow-hidden">
+    <div className="h-screen bg-[#fafafa] text-[#1a1a1a] px-3 py-3 md:px-6 md:py-5 lg:px-8 lg:py-6 flex flex-col w-full mx-auto overflow-hidden">
       <DashboardHeader
         selectedType={selectedType}
         selectedCountry={selectedCountry}
