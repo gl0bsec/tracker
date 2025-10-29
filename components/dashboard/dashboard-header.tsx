@@ -28,9 +28,9 @@ export function DashboardHeader({
       <div className="flex justify-between items-start flex-wrap gap-2">
         <div>
           <h1 className="text-xl md:text-[26px] font-bold mb-0.5 tracking-tight text-[#1a1a1a] font-serif">
-            What's Russia doing in Africa?
+            {config.ui.title}
           </h1>
-          <p className="text-xs text-[#666] font-light">An overview of events and activities</p>
+          <p className="text-xs text-[#666] font-light">{config.ui.subtitle}</p>
         </div>
 
         {/* View Mode Toggle */}

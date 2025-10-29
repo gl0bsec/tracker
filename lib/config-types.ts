@@ -142,6 +142,10 @@ export interface TypeConfig {
 }
 
 export interface FeaturesConfig {
+  insights?: {
+    enabled: boolean
+    comingSoon?: boolean
+  }
   crossFiltering: {
     enabled: boolean
     filters: string[]
