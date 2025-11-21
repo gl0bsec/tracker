@@ -128,9 +128,11 @@ export default function Dashboard() {
       .sort((a, b) => b.total - a.total)
   }, [filteredData])
 
+  // Filter data to only show events from June 2025 onward
   const stripPlotData = useMemo(() => {
+    const minDate = new Date("2025-06-01")
     return filteredData
-      .filter((d) => d.first_event_date)
+      .filter((d) => d.first_event_date && d.parsed_first_event_date >= minDate)
       .map((d) => ({
         type: d.Type,
         date: d.parsed_first_event_date,
@@ -140,8 +142,29 @@ export default function Dashboard() {
       }))
   }, [filteredData])
 
-  const defaultStartDate = new Date("2025-06-01")
-  const defaultEndDate = new Date("2025-10-05")
+  // Dynamically calculate date range from data (starting from June 2025)
+  const { defaultStartDate, defaultEndDate } = useMemo(() => {
+    const minAllowedDate = new Date("2025-06-01")
+
+    if (stripPlotData.length === 0) {
+      return {
+        defaultStartDate: minAllowedDate,
+        defaultEndDate: new Date()
+      }
+    }
+
+    const dates = stripPlotData.map(d => d.date.getTime())
+    const maxDate = new Date(Math.max(...dates))
+
+    // Always start from June 2025
+    const startDate = minAllowedDate
+
+    // Add a small buffer to end date (7 days)
+    const endDate = new Date(maxDate)
+    endDate.setDate(endDate.getDate() + 7)
+
+    return { defaultStartDate: startDate, defaultEndDate: endDate }
+  }, [stripPlotData])
 
   const clearFilters = () => {
     setSelectedType(null)
@@ -202,7 +225,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen bg-[#fafafa] text-[#1a1a1a] px-3 py-3 md:px-6 md:py-5 lg:px-8 lg:py-6 flex flex-col w-full mx-auto overflow-hidden">
+    <div className="min-h-screen bg-[#fafafa] text-[#1a1a1a] px-3 py-3 md:px-6 md:py-5 lg:px-8 lg:py-6 lg:h-screen flex flex-col w-full mx-auto lg:overflow-hidden">
       <DashboardHeader
         selectedType={selectedType}
         selectedCountry={selectedCountry}
@@ -222,10 +245,213 @@ export default function Dashboard() {
             onShowInfo={() => handleShowInfo("type-metrics", "Event Type Metrics")}
           />
 
-          {/* Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-[48%_52%] gap-3 lg:gap-2 flex-1 min-h-0">
+          {/* Mobile: First Section - Timeline/Location (full viewport) */}
+          <div className="mobile-section lg:hidden flex flex-col h-[45vh] min-h-[350px] pb-4">
+            <div className="flex justify-between items-center mb-3 pb-2 border-b border-[#e0e0e0]">
+              <div className="flex items-center">
+                <h2 className="text-sm font-bold text-[#1a1a1a] tracking-tight">
+                  {mobileView === "timeline" ? "Timeline" : "By Location"}
+                </h2>
+                <InfoButton
+                  onClick={() =>
+                    handleShowInfo(
+                      mobileView === "timeline" ? "timeline" : "by-location",
+                      mobileView === "timeline" ? "Timeline" : "By Location"
+                    )
+                  }
+                />
+              </div>
+              <div className="flex gap-2 items-center">
+                {mobileView === "timeline" && zoomRange && (
+                  <button
+                    onClick={resetZoom}
+                    className="text-xs px-3 py-1.5 bg-[#e0e0e0] hover:bg-[#d0d0d0] text-[#1a1a1a] rounded transition-colors"
+                  >
+                    Reset Zoom
+                  </button>
+                )}
+                <div className="flex bg-gray-100 rounded overflow-hidden">
+                  <button
+                    onClick={() => setMobileView("timeline")}
+                    className={`px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap ${
+                      mobileView === "timeline"
+                        ? "bg-[#1a1a1a] text-white"
+                        : "bg-transparent text-[#1a1a1a] hover:bg-gray-200"
+                    }`}
+                  >
+                    Timeline
+                  </button>
+                  <button
+                    onClick={() => setMobileView("location")}
+                    className={`px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap ${
+                      mobileView === "location"
+                        ? "bg-[#1a1a1a] text-white"
+                        : "bg-transparent text-[#1a1a1a] hover:bg-gray-200"
+                    }`}
+                  >
+                    Location
+                  </button>
+                </div>
+              </div>
+            </div>
+            {mobileView === "timeline" ? (
+              <div className="bg-[#fafafa] flex-1">
+                <D3Timeline
+                  data={stripPlotData}
+                  startDate={defaultStartDate}
+                  endDate={defaultEndDate}
+                  onPointClick={handleTimelinePointClick}
+                  onZoom={(start, end) => setZoomRange({ start, end })}
+                  zoomRange={zoomRange}
+                />
+              </div>
+            ) : (
+              <div className="bg-[#fafafa] flex-1 overflow-y-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-[#fafafa] sticky top-0 border-b-2 border-[#1a1a1a]">
+                    <tr>
+                      <th className="text-left px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                        Location
+                      </th>
+                      <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                        Econ
+                      </th>
+                      <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                        Sec
+                      </th>
+                      <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                        Dip
+                      </th>
+                      <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                        Info
+                      </th>
+                      <th className="text-center px-2.5 py-2 font-bold text-[#1a1a1a] text-[10px] uppercase tracking-wide">
+                        Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {locationByTypeData.map((row, i) => {
+                      const isSelected = selectedCountry === row.location
+                      return (
+                        <tr
+                          key={i}
+                          onClick={() => handleCountryClick(row.location)}
+                          className={`border-b border-[#e0e0e0] cursor-pointer transition-all ${
+                            isSelected ? "bg-white" : "hover:bg-white"
+                          }`}
+                        >
+                          <td
+                            className={`px-2.5 py-2 text-xs ${isSelected ? "text-[#1a1a1a] font-bold" : "text-[#1a1a1a]"}`}
+                          >
+                            {config.countryMapping.inline[row.location] || row.location}
+                          </td>
+                          <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.ECON}</td>
+                          <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.SEC}</td>
+                          <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.DIP}</td>
+                          <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.INFO}</td>
+                          <td
+                            className={`text-center px-2.5 py-2 font-bold text-xs ${
+                              isSelected ? "text-[#1a1a1a]" : "text-[#1a1a1a]"
+                            }`}
+                          >
+                            {row.total}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile: Second Section - Stories (full viewport) */}
+          <div className="mobile-section lg:hidden flex flex-col h-[50vh] min-h-[400px]">
+            <div className="mb-3 pb-2 border-b border-[#e0e0e0]">
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center">
+                  <h2 className="text-sm font-bold text-[#1a1a1a] tracking-tight">
+                    {timelineLayout === "feed" ? "Latest Stories" : "Event Timeline"}
+                  </h2>
+                  <InfoButton onClick={() => handleShowInfo("latest-stories", "Latest Stories")} />
+                </div>
+                <div className="flex gap-2 items-center">
+                  <div className="flex bg-gray-100 rounded overflow-hidden">
+                    <button
+                      onClick={() => setTimelineLayout("feed")}
+                      className={`px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap ${
+                        timelineLayout === "feed"
+                          ? "bg-[#1a1a1a] text-white"
+                          : "bg-transparent text-[#1a1a1a] hover:bg-gray-200"
+                      }`}
+                    >
+                      Feed
+                    </button>
+                    <button
+                      onClick={() => setTimelineLayout("table")}
+                      className={`px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap ${
+                        timelineLayout === "table"
+                          ? "bg-[#1a1a1a] text-white"
+                          : "bg-transparent text-[#1a1a1a] hover:bg-gray-200"
+                      }`}
+                    >
+                      Table
+                    </button>
+                  </div>
+                  <button
+                    onClick={exportToCSV}
+                    className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-3 py-1.5 text-xs font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
+                    title="Export filtered data to CSV"
+                  >
+                    Export
+                  </button>
+                </div>
+              </div>
+              {timelineLayout === "feed" && (
+                <div className="relative">
+                  <svg
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search stories..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-white border border-[#e0e0e0] text-[#1a1a1a] pl-10 pr-3 py-1.5 text-sm placeholder-[#999] focus:outline-none focus:border-[#1a1a1a]"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="overflow-y-auto flex-1 bg-[#fafafa]">
+              {timelineLayout === "feed" ? (
+                <EventsFeed data={filteredAndSearchedData} highlightedRowIndex={highlightedRowIndex} />
+              ) : (
+                <EventsTable
+                  data={filteredAndSearchedData}
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                  highlightedRowIndex={highlightedRowIndex}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Desktop: Grid with 2 columns */}
+          <div className="hidden lg:grid lg:grid-cols-[48%_52%] lg:gap-2 flex-1 min-h-0">
             {/* Left Column */}
-            <div className="flex flex-col min-h-0 overflow-hidden h-auto lg:h-auto">
+            <div className="flex flex-col min-h-0 overflow-hidden">
               <div className="mb-1.5 pb-1.5 md:mb-2 md:pb-2 border-b border-[#e0e0e0]">
                 <div className="flex justify-between items-center mb-1.5 md:mb-2">
                   <div className="flex items-center">
@@ -286,111 +512,6 @@ export default function Dashboard() {
                     onSort={handleSort}
                     highlightedRowIndex={highlightedRowIndex}
                   />
-                )}
-              </div>
-
-              {/* Mobile Timeline/Location - shown only on mobile/tablet below feed */}
-              <div className="lg:hidden mt-2 flex flex-col flex-shrink-0">
-                <div className="flex justify-between items-center mb-1.5 pb-1.5 border-t border-[#e0e0e0] pt-1.5">
-                  <div className="flex items-center">
-                    <h2 className="text-[11px] font-bold text-[#1a1a1a] tracking-tight">
-                      {mobileView === "timeline" ? "Timeline" : "By Location"}
-                    </h2>
-                    <InfoButton
-                      onClick={() =>
-                        handleShowInfo(
-                          mobileView === "timeline" ? "timeline" : "by-location",
-                          mobileView === "timeline" ? "Timeline" : "By Location"
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    {mobileView === "timeline" && zoomRange && (
-                      <button
-                        onClick={resetZoom}
-                        className="text-[10px] px-1.5 py-0.5 bg-[#e0e0e0] hover:bg-[#d0d0d0] text-[#1a1a1a] rounded transition-colors"
-                      >
-                        Reset Zoom
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setMobileView(mobileView === "timeline" ? "location" : "timeline")}
-                      className="bg-white border border-[#1a1a1a] text-[#1a1a1a] px-2 py-0.5 text-[10px] font-medium hover:bg-[#1a1a1a] hover:text-white transition-all whitespace-nowrap"
-                    >
-                      {mobileView === "timeline" ? "By Location" : "Timeline"}
-                    </button>
-                  </div>
-                </div>
-                {mobileView === "timeline" ? (
-                  <div className="bg-[#fafafa] h-[100px]">
-                    <D3Timeline
-                      data={stripPlotData}
-                      startDate={defaultStartDate}
-                      endDate={defaultEndDate}
-                      onPointClick={handleTimelinePointClick}
-                      onZoom={(start, end) => setZoomRange({ start, end })}
-                      zoomRange={zoomRange}
-                    />
-                  </div>
-                ) : (
-                  <div className="bg-[#fafafa] h-[140px] overflow-y-auto">
-                    <table className="w-full text-xs">
-                      <thead className="bg-[#fafafa] sticky top-0 border-b-2 border-[#1a1a1a]">
-                        <tr>
-                          <th className="text-left px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
-                            Location
-                          </th>
-                          <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
-                            Econ
-                          </th>
-                          <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
-                            Sec
-                          </th>
-                          <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
-                            Dip
-                          </th>
-                          <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
-                            Info
-                          </th>
-                          <th className="text-center px-2.5 py-2 font-bold text-[#1a1a1a] text-[10px] uppercase tracking-wide">
-                            Total
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {locationByTypeData.map((row, i) => {
-                          const isSelected = selectedCountry === row.location
-                          return (
-                            <tr
-                              key={i}
-                              onClick={() => handleCountryClick(row.location)}
-                              className={`border-b border-[#e0e0e0] cursor-pointer transition-all ${
-                                isSelected ? "bg-white" : "hover:bg-white"
-                              }`}
-                            >
-                              <td
-                                className={`px-2.5 py-2 text-xs ${isSelected ? "text-[#1a1a1a] font-bold" : "text-[#1a1a1a]"}`}
-                              >
-                                {config.countryMapping.inline[row.location] || row.location}
-                              </td>
-                              <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.ECON}</td>
-                              <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.SEC}</td>
-                              <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.DIP}</td>
-                              <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.INFO}</td>
-                              <td
-                                className={`text-center px-2.5 py-2 font-bold text-xs ${
-                                  isSelected ? "text-[#1a1a1a]" : "text-[#1a1a1a]"
-                                }`}
-                              >
-                                {row.total}
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
                 )}
               </div>
             </div>

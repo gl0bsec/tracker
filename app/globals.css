@@ -123,6 +123,18 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    scroll-behavior: smooth;
+  }
+  /* Smooth scroll on mobile with snap points */
+  @media (max-width: 1024px) {
+    html {
+      scroll-snap-type: y proximity;
+    }
+    .mobile-section {
+      scroll-snap-align: start;
+    }
+  }
 }
 
 /* Mobile scaling - 80% of desktop size */

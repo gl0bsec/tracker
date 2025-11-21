@@ -69,10 +69,9 @@
         "position": "right-top",
         "height": 260,
         "dateRange": {
-          "start": "2025-06-01",
-          "end": "2025-10-05"
-        },
-        "monthLabels": ["Jun", "Jul", "Aug", "Sep", "Oct"]
+          "dynamic": true,
+          "minDate": "2025-06-01"
+        }
       },
       "locationWidget": {
         "enabled": true,
