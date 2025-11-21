@@ -50,7 +50,13 @@ export default function D3Timeline({
 
     // Get container dimensions
     const containerRect = container.getBoundingClientRect()
-    const margin = { top: 15, right: 15, bottom: 20, left: 65 }
+    const isMobile = containerRect.width < 768
+    const margin = {
+      top: isMobile ? 10 : 15,
+      right: isMobile ? 8 : 15,
+      bottom: isMobile ? 15 : 20,
+      left: isMobile ? 45 : 65
+    }
     const width = containerRect.width - margin.left - margin.right
     const height = containerRect.height - margin.top - margin.bottom
 
@@ -111,12 +117,12 @@ export default function D3Timeline({
         .attr("opacity", 0.5)
 
       g.append("text")
-        .attr("x", -8)
+        .attr("x", isMobile ? -5 : -8)
         .attr("y", y)
         .attr("text-anchor", "end")
         .attr("dominant-baseline", "middle")
         .attr("fill", "#1a1a1a")
-        .attr("font-size", "11px")
+        .attr("font-size", isMobile ? "10px" : "11px")
         .attr("font-weight", "700")
         .text(type)
     })
@@ -145,7 +151,7 @@ export default function D3Timeline({
         .attr("y", 0)
         .attr("text-anchor", "middle")
         .attr("fill", "#666")
-        .attr("font-size", "11px")
+        .attr("font-size", isMobile ? "9px" : "11px")
         .text(labelText.trim())
     })
 
@@ -170,15 +176,15 @@ export default function D3Timeline({
         .append("circle")
         .attr("cx", x)
         .attr("cy", y)
-        .attr("r", 3)
+        .attr("r", isMobile ? 2 : 3)
         .attr("fill", typeColors[d.type] || "#999")
-        .attr("opacity", 0.7)
+        .attr("opacity", isMobile ? 0.9 : 0.7)
         .style("cursor", "pointer")
         .on("mouseover", function() {
-          d3.select(this).attr("opacity", 1)
+          d3.select(this).attr("opacity", 1).attr("r", isMobile ? 3 : 4)
         })
         .on("mouseout", function() {
-          d3.select(this).attr("opacity", 0.7)
+          d3.select(this).attr("opacity", isMobile ? 0.9 : 0.7).attr("r", isMobile ? 2 : 3)
         })
         .on("click", function(event) {
           event.stopPropagation()

@@ -86,14 +86,24 @@ export default function Dashboard() {
   // Apply cross-filtering
   const filteredData = useCrossFilter(data, { selectedType, selectedCountry, selectedWeek })
 
-  // Apply search and sort
-  const filteredAndSearchedData = useEventSearch(filteredData, { searchQuery, sortColumn, sortDirection })
+  // Apply date range filter from timeline zoom
+  const dateFilteredData = useMemo(() => {
+    if (!zoomRange) return filteredData
 
-  // Location data for mobile view
+    return filteredData.filter((d) => {
+      if (!d.parsed_first_event_date) return false
+      return d.parsed_first_event_date >= zoomRange.start && d.parsed_first_event_date <= zoomRange.end
+    })
+  }, [filteredData, zoomRange])
+
+  // Apply search and sort
+  const filteredAndSearchedData = useEventSearch(dateFilteredData, { searchQuery, sortColumn, sortDirection })
+
+  // Location data for mobile view (use date-filtered data for consistency)
   const locationByTypeData = useMemo(() => {
     const locationMap: Record<string, Record<string, number> & { goldsteinScores: number[] }> = {}
 
-    filteredData.forEach((d) => {
+    dateFilteredData.forEach((d) => {
       d.event_locations_array.forEach((country) => {
         if (!locationMap[country]) {
           locationMap[country] = { ECON: 0, SEC: 0, DIP: 0, INFO: 0, total: 0, goldsteinScores: [] }
@@ -126,7 +136,7 @@ export default function Dashboard() {
         }
       })
       .sort((a, b) => b.total - a.total)
-  }, [filteredData])
+  }, [dateFilteredData])
 
   // Filter data to only show events from June 2025 onward
   const stripPlotData = useMemo(() => {
@@ -176,6 +186,10 @@ export default function Dashboard() {
 
   const resetZoom = () => {
     setZoomRange(null)
+  }
+
+  const handleZoom = (start: Date, end: Date) => {
+    setZoomRange({ start, end })
   }
 
   const handleTypeClick = (type: string) => {
@@ -246,10 +260,10 @@ export default function Dashboard() {
           />
 
           {/* Mobile: First Section - Timeline/Location (full viewport) */}
-          <div className="mobile-section lg:hidden flex flex-col h-[45vh] min-h-[350px] pb-4">
-            <div className="flex justify-between items-center mb-3 pb-2 border-b border-[#e0e0e0]">
+          <div className="mobile-section lg:hidden flex flex-col h-[45vh] min-h-[350px] pb-3">
+            <div className="flex justify-between items-center mb-2 pb-2 border-b border-[#e0e0e0]">
               <div className="flex items-center">
-                <h2 className="text-sm font-bold text-[#1a1a1a] tracking-tight">
+                <h2 className="text-xs font-bold text-[#1a1a1a] tracking-wide uppercase">
                   {mobileView === "timeline" ? "Timeline" : "By Location"}
                 </h2>
                 <InfoButton
@@ -301,31 +315,31 @@ export default function Dashboard() {
                   startDate={defaultStartDate}
                   endDate={defaultEndDate}
                   onPointClick={handleTimelinePointClick}
-                  onZoom={(start, end) => setZoomRange({ start, end })}
+                  onZoom={handleZoom}
                   zoomRange={zoomRange}
                 />
               </div>
             ) : (
               <div className="bg-[#fafafa] flex-1 overflow-y-auto">
-                <table className="w-full text-xs">
+                <table className="w-full">
                   <thead className="bg-[#fafafa] sticky top-0 border-b-2 border-[#1a1a1a]">
                     <tr>
-                      <th className="text-left px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                      <th className="text-left px-2.5 py-1.5 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
                         Location
                       </th>
-                      <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                      <th className="text-center px-2.5 py-1.5 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
                         Econ
                       </th>
-                      <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                      <th className="text-center px-2.5 py-1.5 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
                         Sec
                       </th>
-                      <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                      <th className="text-center px-2.5 py-1.5 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
                         Dip
                       </th>
-                      <th className="text-center px-2.5 py-2 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
+                      <th className="text-center px-2.5 py-1.5 text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wide">
                         Info
                       </th>
-                      <th className="text-center px-2.5 py-2 font-bold text-[#1a1a1a] text-[10px] uppercase tracking-wide">
+                      <th className="text-center px-2.5 py-1.5 font-bold text-[#1a1a1a] text-[10px] uppercase tracking-wide">
                         Total
                       </th>
                     </tr>
@@ -342,16 +356,16 @@ export default function Dashboard() {
                           }`}
                         >
                           <td
-                            className={`px-2.5 py-2 text-xs ${isSelected ? "text-[#1a1a1a] font-bold" : "text-[#1a1a1a]"}`}
+                            className={`px-2.5 py-1.5 text-[11px] ${isSelected ? "text-[#1a1a1a] font-bold" : "text-[#1a1a1a]"}`}
                           >
                             {config.countryMapping.inline[row.location] || row.location}
                           </td>
-                          <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.ECON}</td>
-                          <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.SEC}</td>
-                          <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.DIP}</td>
-                          <td className="text-center px-2.5 py-2 text-[#666] text-xs">{row.INFO}</td>
+                          <td className="text-center px-2.5 py-1.5 text-[#666] text-[11px]">{row.ECON}</td>
+                          <td className="text-center px-2.5 py-1.5 text-[#666] text-[11px]">{row.SEC}</td>
+                          <td className="text-center px-2.5 py-1.5 text-[#666] text-[11px]">{row.DIP}</td>
+                          <td className="text-center px-2.5 py-1.5 text-[#666] text-[11px]">{row.INFO}</td>
                           <td
-                            className={`text-center px-2.5 py-2 font-bold text-xs ${
+                            className={`text-center px-2.5 py-1.5 font-bold text-[11px] ${
                               isSelected ? "text-[#1a1a1a]" : "text-[#1a1a1a]"
                             }`}
                           >
@@ -368,10 +382,10 @@ export default function Dashboard() {
 
           {/* Mobile: Second Section - Stories (full viewport) */}
           <div className="mobile-section lg:hidden flex flex-col h-[50vh] min-h-[400px]">
-            <div className="mb-3 pb-2 border-b border-[#e0e0e0]">
+            <div className="mb-2 pb-2 border-b border-[#e0e0e0]">
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
-                  <h2 className="text-sm font-bold text-[#1a1a1a] tracking-tight">
+                  <h2 className="text-xs font-bold text-[#1a1a1a] tracking-wide uppercase">
                     {timelineLayout === "feed" ? "Latest Stories" : "Event Timeline"}
                   </h2>
                   <InfoButton onClick={() => handleShowInfo("latest-stories", "Latest Stories")} />
@@ -519,7 +533,7 @@ export default function Dashboard() {
             {/* Right Column - Location Table and Strip Plot */}
             <div className="hidden lg:flex flex-col gap-2 min-h-0 overflow-hidden">
               <LocationSection
-                data={filteredData}
+                data={dateFilteredData}
                 isMapMode={isMapMode}
                 onToggleMode={() => setIsMapMode(!isMapMode)}
                 selectedCountry={selectedCountry}
@@ -549,7 +563,7 @@ export default function Dashboard() {
                     startDate={defaultStartDate}
                     endDate={defaultEndDate}
                     onPointClick={handleTimelinePointClick}
-                    onZoom={(start, end) => setZoomRange({ start, end })}
+                    onZoom={handleZoom}
                     zoomRange={zoomRange}
                   />
                 </div>

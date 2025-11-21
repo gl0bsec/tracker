@@ -137,16 +137,9 @@
   }
 }
 
-/* Mobile scaling - 80% of desktop size */
+/* Mobile optimizations */
 @media (max-width: 768px) {
-  :root {
-    font-size: 80%;
-  }
-
-  /* Scale down all visual elements proportionally */
-  body > * {
-    transform-origin: top center;
-  }
+  /* Remove global font scaling - use component-specific sizing instead */
 }
 
 /* Leaflet map dark theme adjustments */
