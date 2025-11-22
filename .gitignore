@@ -49,6 +49,7 @@ Thumbs.db
 
 # Documentation
 CLAUDE.md
+claude.md
 
 # Environment template (tracked)
 !.env.example
