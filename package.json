@@ -20,7 +20,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.454.0",
     "marked": "^16.4.1",
-    "next": "15.2.4",
+    "next": "16.0.7",
     "papaparse": "latest",
     "react": "^19",
     "react-dom": "^19",
