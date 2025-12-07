@@ -12,31 +12,34 @@ interface NewsRow {
   SOURCEURL: string
   title: string
   description: string
-  content: string
+  content?: string
   avg_goldstein_score: string
-  min_goldstein_score: string
-  max_goldstein_score: string
-  goldstein_score_std: string
+  min_goldstein_score?: string
+  max_goldstein_score?: string
+  goldstein_score_std?: string
   event_count: string
   actor1_names: string
   actor2_names: string
   actor1_countries: string
   actor2_countries: string
   event_locations: string
-  last_event_date: string
+  last_event_date?: string
   event_descriptions: string
-  date_span_days: string
+  date_span_days?: string
   keywords: string
   author: string
   site_name: string
-  image: string
-  favicon: string
-  canonical_url: string
+  image?: string
+  favicon?: string
+  canonical_url?: string
   language: string
-  content_type: string
-  status_code: string
-  error: string
-  llm_result: string
+  content_type?: string
+  status_code?: string
+  error?: string
+  llm_result?: string
+  Type?: string // For new CSV format where Type is a column
+  Date?: string // For new CSV format where Date is a column
+  'Event name'?: string // For new CSV format
 }
 
 interface ExistingRow {
@@ -65,11 +68,16 @@ interface ExistingRow {
 }
 
 function transformNewsRow(row: NewsRow): ExistingRow {
+  // Handle both old format (llm_result) and new format (Type column)
+  const type = row.Type || row.llm_result || ''
+  const date = row.Date || row.first_event_date || ''
+  const eventName = row['Event name'] || row.title || ''
+
   return {
     SOURCEURL: row.SOURCEURL || '',
-    Date: row.first_event_date || '',
-    'Event name': row.title || '', // Copy title to Event name
-    Type: row.llm_result || '',
+    Date: date,
+    'Event name': eventName,
+    Type: type,
     cluster: '', // Not available in news data
     actor1_countries: row.actor1_countries || '',
     actor2_countries: row.actor2_countries || '',
@@ -77,7 +85,7 @@ function transformNewsRow(row: NewsRow): ExistingRow {
     combined_text_entities: '', // Not available in news data
     combined_text_entity_types: '', // Not available in news data
     keywords: row.keywords || '',
-    first_event_date: row.first_event_date || '',
+    first_event_date: row.first_event_date || date,
     title: row.title || '',
     description: row.description || '',
     event_count: row.event_count || '',
@@ -92,13 +100,19 @@ function transformNewsRow(row: NewsRow): ExistingRow {
 }
 
 function isValidRow(row: NewsRow): boolean {
-  // Check if llm_result exists and is valid
-  if (!row.llm_result || !VALID_TYPES.includes(row.llm_result.trim())) {
+  // Handle both old format (llm_result) and new format (Type column)
+  const type = row.Type || row.llm_result || ''
+
+  // Check if type exists and is valid
+  if (!type || !VALID_TYPES.includes(type.trim())) {
     return false
   }
 
   // Check if required fields exist
-  if (!row.first_event_date || !row.title) {
+  const date = row.Date || row.first_event_date || ''
+  const title = row.title || ''
+
+  if (!date || !title) {
     return false
   }
 
@@ -128,7 +142,7 @@ async function importNewsData(newsFilePath: string, existingDataPath: string, ou
   const excludedByType: Record<string, number> = {}
   newsParsed.data.forEach(row => {
     if (!isValidRow(row)) {
-      const type = row.llm_result || 'MISSING'
+      const type = row.Type || row.llm_result || 'MISSING'
       excludedByType[type] = (excludedByType[type] || 0) + 1
     }
   })
@@ -199,7 +213,7 @@ async function importNewsData(newsFilePath: string, existingDataPath: string, ou
 }
 
 // Main execution
-const newsFilePath = process.argv[2] || 'Russia in africa tracker - news extract latest (labelled).csv'
+const newsFilePath = process.argv[2] || 'Russia in africa tracker - Russia in africa tracker - Timeline w metadata (filled from news).csv'
 const existingDataPath = process.argv[3] || 'public/data.csv'
 const outputPath = process.argv[4] || 'public/data.csv'
 
