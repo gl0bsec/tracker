@@ -51,7 +51,7 @@ export default function Dashboard() {
   const [selectedInsight, setSelectedInsight] = useState<(typeof insights)[0] | null>(null)
 
   // Mobile view toggle state (timeline vs location)
-  const [mobileView, setMobileView] = useState<"timeline" | "location">("timeline")
+  const [mobileView, setMobileView] = useState<"timeline" | "location">("location")
 
   // Info modal state
   const [infoModal, setInfoModal] = useState<{ title: string; content: string } | null>(null)
