@@ -29,7 +29,7 @@ export function TypeMetrics({ data, selectedType, onTypeClick, onShowInfo }: Typ
     <div className="mb-3 md:mb-6 flex-shrink-0 min-w-0">
       {onShowInfo && (
         <div className="flex items-center mb-2">
-          <h2 className="text-xs md:text-sm font-bold text-[#1a1a1a] uppercase tracking-wide">Event Types</h2>
+          <h2 className="text-xs md:text-sm font-bold text-[#1a1a1a] uppercase tracking-wide">Activity Types</h2>
           <InfoButton onClick={onShowInfo} />
         </div>
       )}

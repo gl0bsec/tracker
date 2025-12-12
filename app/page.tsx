@@ -469,7 +469,7 @@ export default function Dashboard() {
               <div className="mb-1.5 pb-1.5 md:mb-2 md:pb-2 border-b border-[#e0e0e0]">
                 <div className="flex justify-between items-center mb-1.5 md:mb-2">
                   <div className="flex items-center">
-                    <h2 className="text-sm md:text-base font-bold text-[#1a1a1a] tracking-tight">
+                    <h2 className="text-xs md:text-sm font-bold text-[#1a1a1a] uppercase tracking-wide">
                       {timelineLayout === "feed" ? "Latest Stories" : "Event Timeline"}
                     </h2>
                     <InfoButton onClick={() => handleShowInfo("latest-stories", "Latest Stories")} />
@@ -545,7 +545,7 @@ export default function Dashboard() {
               <div className="flex flex-col min-h-[300px] lg:min-h-0 lg:flex-[0_1_40%]">
                 <div className="flex justify-between items-center mb-2 pb-2 border-b border-[#e0e0e0]">
                   <div className="flex items-center">
-                    <h2 className="text-base font-bold text-[#1a1a1a] tracking-tight">Timeline</h2>
+                    <h2 className="text-xs md:text-sm font-bold text-[#1a1a1a] uppercase tracking-wide">Timeline</h2>
                     <InfoButton onClick={() => handleShowInfo("timeline", "Timeline")} />
                   </div>
                   {zoomRange && (

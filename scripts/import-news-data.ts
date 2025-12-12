@@ -213,7 +213,7 @@ async function importNewsData(newsFilePath: string, existingDataPath: string, ou
 }
 
 // Main execution
-const newsFilePath = process.argv[2] || 'Russia in africa tracker - Russia in africa tracker - Timeline w metadata (filled from news).csv'
+const newsFilePath = process.argv[2] || 'ingest/Russia in africa tracker - Russia in africa tracker - Timeline w metadata (filled from news).csv'
 const existingDataPath = process.argv[3] || 'public/data.csv'
 const outputPath = process.argv[4] || 'public/data.csv'
 
