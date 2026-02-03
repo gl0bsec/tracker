@@ -53,3 +53,7 @@ claude.md
 
 # Environment template (tracked)
 !.env.example
+
+# CSV files (only allow public/data.csv)
+*.csv
+!public/data.csv
