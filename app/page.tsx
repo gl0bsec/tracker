@@ -34,8 +34,8 @@ export default function Dashboard() {
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null)
 
   const [searchQuery, setSearchQuery] = useState("")
-  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null)
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const [sortColumn, setSortColumn] = useState<SortColumn | null>("date")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
   const [isMapMode, setIsMapMode] = useState(true)
   const [timelineLayout, setTimelineLayout] = useState<TimelineLayout>("feed")
 
